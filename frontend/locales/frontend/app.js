@@ -1,6 +1,10 @@
 const LOCALE_CACHE = {};
 let currentLang = localStorage.getItem("shieldpulse_lang") || "ar";
 let dict = {};
+let lastResult = null;
+
+const BUY_URL = "https://gumroad.com/";
+const VALID_KEYS = new Set(["SHIELD-PRO-2026", "SHIELD-VIP-100"]);
 
 const SUSPICIOUS_KEYWORDS = [
   "verify", "urgent", "account suspended", "password", "otp", "free gift", "login now",
@@ -32,13 +36,36 @@ const els = {
   freePlanDesc: document.getElementById("freePlanDesc"),
   proPlanTitle: document.getElementById("proPlanTitle"),
   proPlanDesc: document.getElementById("proPlanDesc"),
-  buyBtn: document.getElementById("buyBtn")
+  buyBtn: document.getElementById("buyBtn"),
+  licenseInput: document.getElementById("licenseInput"),
+  activateBtn: document.getElementById("activateBtn"),
+  licenseStatus: document.getElementById("licenseStatus"),
+  copyReportBtn: document.getElementById("copyReportBtn")
 };
 
-async function loadLocale(lang) {
-  if (LOCALE_CACHE[lang]) {
-    return LOCALE_CACHE[lang];
+function isProActive() {
+  return localStorage.getItem("shieldpulse_pro") === "true";
+}
+
+function updateProUI() {
+  const active = isProActive();
+  if (active) {
+    els.licenseStatus.textContent =
+      currentLang === "ar"
+        ? "تم تفعيل نسخة Pro — ميزة نسخ التقرير متاحة."
+        : "Pro version active — Copy Report feature enabled.";
+    if (lastResult) els.copyReportBtn.classList.remove("hidden");
+  } else {
+    els.licenseStatus.textContent =
+      currentLang === "ar"
+        ? "النسخة المجانية مفعّلة. أدخل مفتاح Pro لفتح نسخ التقارير."
+        : "Free version active. Enter a Pro key to unlock report copying.";
+    els.copyReportBtn.classList.add("hidden");
   }
+}
+
+async function loadLocale(lang) {
+  if (LOCALE_CACHE[lang]) return LOCALE_CACHE[lang];
   const response = await fetch(`./locales/${lang}.json`);
   const data = await response.json();
   LOCALE_CACHE[lang] = data;
@@ -71,6 +98,21 @@ async function applyLanguage(lang) {
   els.proPlanTitle.textContent = dict.pro_plan;
   els.proPlanDesc.textContent = dict.pro_desc;
   els.buyBtn.textContent = dict.buy_btn;
+  els.buyBtn.href = BUY_URL;
+  els.buyBtn.target = "_blank";
+  els.buyBtn.rel = "noopener noreferrer";
+
+  els.activateBtn.textContent = currentLang === "ar" ? "تفعيل" : "Activate";
+  els.copyReportBtn.textContent = currentLang === "ar" ? "نسخ تقرير الفحص" : "Copy Report";
+  els.licenseInput.placeholder =
+    currentLang === "ar"
+      ? "أدخل مفتاح تفعيل Pro (مثال: SHIELD-PRO-2026)"
+      : "Enter Pro license key (e.g. SHIELD-PRO-2026)";
+
+  updateProUI();
+  if (lastResult && !els.resultBox.classList.contains("hidden")) {
+    renderResult(analyzeInput(els.inputField.value));
+  }
 }
 
 function analyzeInput(raw) {
@@ -155,13 +197,39 @@ function analyzeInput(raw) {
 }
 
 function renderResult(data) {
+  lastResult = data;
   els.resultBox.classList.remove("hidden", "safe", "suspicious", "danger");
   els.resultBox.classList.add(data.status);
   els.statusText.textContent = data.statusLabel;
   els.scoreValue.textContent = `${data.score}/100`;
   els.reasonsList.innerHTML = data.reasons.map((item) => `<li>${item}</li>`).join("");
   els.adviceText.textContent = data.advice;
+  updateProUI();
 }
+
+els.activateBtn.addEventListener("click", () => {
+  const key = (els.licenseInput.value || "").trim().toUpperCase();
+  if (VALID_KEYS.has(key)) {
+    localStorage.setItem("shieldpulse_pro", "true");
+    updateProUI();
+  } else {
+    els.licenseStatus.textContent =
+      currentLang === "ar"
+        ? "مفتاح التفعيل غير صحيح. جرّب SHIELD-PRO-2026 للتجربة."
+        : "Invalid license key. Try SHIELD-PRO-2026 to test.";
+  }
+});
+
+els.copyReportBtn.addEventListener("click", async () => {
+  if (!lastResult) return;
+  const summary = [
+    `ShieldPulse (${lastResult.score}/100) - ${lastResult.statusLabel}`,
+    ...lastResult.reasons.map((r) => `- ${r}`),
+    lastResult.advice
+  ].join("\n");
+  await navigator.clipboard.writeText(summary);
+  els.copyReportBtn.textContent = currentLang === "ar" ? "تم النسخ" : "Copied";
+});
 
 els.scanBtn.addEventListener("click", () => {
   if (!els.inputField.value.trim()) return;
@@ -183,7 +251,9 @@ els.sampleMsgBtn.addEventListener("click", () => {
 
 els.clearBtn.addEventListener("click", () => {
   els.inputField.value = "";
+  lastResult = null;
   els.resultBox.classList.add("hidden");
+  els.copyReportBtn.classList.add("hidden");
 });
 
 els.langToggle.addEventListener("click", () => {
