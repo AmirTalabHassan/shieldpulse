@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ShieldPulse — Phishing & Link Guard</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <div class="brand-wrap">
+        <span class="logo-dot"></span>
+        <span id="brandName" class="brand-name">ShieldPulse</span>
+        <span id="badgeText" class="badge">حماية ذكية ثنائية اللغة</span>
+      </div>
+      <button id="langToggle" class="lang-btn" type="button">English</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <h1 id="heroTitle">اكشف الروابط والرسائل الاحتيالية قبل أن تضغط</h1>
+      <p id="heroSubtitle">أداة فحص دفاعية فورية تحلل الروابط والنصوص المشبوهة بلغة واضحة، وتمنحك درجة خطورة وتوصية عملية خلال ثوانٍ.</p>
+    </section>
+
+    <section class="scanner-card">
+      <textarea id="inputField" rows="4" placeholder="الصق هنا رابطاً مشبوهاً أو رسالة تطلب بيانات أو تحويلاً سريعاً..."></textarea>
+
+      <div class="actions-row">
+        <button id="scanBtn" class="primary-btn" type="button">فحص الآن</button>
+        <button id="sampleLinkBtn" class="ghost-btn" type="button">تجربة رابط مشبوه</button>
+        <button id="sampleMsgBtn" class="ghost-btn" type="button">تجربة رسالة احتيال</button>
+        <button id="clearBtn" class="ghost-btn" type="button">مسح</button>
+      </div>
+
+      <div id="resultBox" class="result-box hidden">
+        <div class="result-header">
+          <div>
+            <span id="resultTitle" class="result-label">نتيجة الفحص</span>
+            <h2 id="statusText" class="status-text">-</h2>
+          </div>
+          <div class="score-pill">
+            <span id="scoreLabel">مؤشر الخطورة</span>
+            <strong id="scoreValue">0/100</strong>
+          </div>
+        </div>
+        <ul id="reasonsList" class="reasons-list"></ul>
+        <p id="adviceText" class="advice-box"></p>
+      </div>
+    </section>
+
+    <section class="plans-section">
+      <h2 id="pricingTitle">الباقات والوصول</h2>
+      <div class="plans-grid">
+        <div class="plan-card">
+          <h3 id="freePlanTitle">النسخة المجانية</h3>
+          <p id="freePlanDesc">فحص سريع مباشر لتجربة الأداة والتأكد من فاعليتها.</p>
+        </div>
+        <div class="plan-card featured">
+          <h3 id="proPlanTitle">نسخة Pro والتفعيل</h3>
+          <p id="proPlanDesc">مفتاح تفعيل، تقارير أوسع، وتحديثات مستمرة لقواعد الكشف.</p>
+          <a id="buyBtn" class="primary-btn link-btn" href="#buy">احصل على النسخة الكاملة</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
